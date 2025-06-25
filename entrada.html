@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entrada de Dados - Pernambuco III</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    .entrada-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: var(--spacing-6);
+    }
+    
+    .entrada-grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: var(--spacing-6);
+      height: calc(100vh - 140px);
+    }
+    
+    .filtro-panel {
+      background: white;
+      border-radius: 16px;
+      padding: var(--spacing-6);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+      position: sticky;
+      top: var(--spacing-6);
+    }
+    
+    .equipamentos-table-container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      height: fit-content;
+    }
+    
+    .table-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+      color: white;
+      padding: var(--spacing-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .equipamentos-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .equipamentos-table th,
+    .equipamentos-table td {
+      padding: var(--spacing-3);
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .equipamentos-table th {
+      background: var(--gray-50);
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: var(--font-size-sm);
+    }
+    
+    .equipamentos-table tr:hover {
+      background: var(--gray-50);
+      cursor: pointer;
+    }
+    
+    .equipamentos-table tr.selected {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-1);
+      padding: var(--spacing-1) var(--spacing-2);
+      border-radius: 6px;
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+    }
+    
+    .status-badge.ope {
+      background: rgba(16, 185, 129, 0.1);
+      color: #059669;
+    }
+    
+    .status-badge.stby {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+    }
+    
+    .status-badge.mnt {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+    
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    
+    .status-indicator.ope {
+      background: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+    
+    .status-indicator.stby {
+      background: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+    }
+    
+    .status-indicator.mnt {
+      background: #ef4444;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+    }
+    
+    .form-section {
+      margin-bottom: var(--spacing-6);
+    }
+    
+    .form-section-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: var(--spacing-4);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+    }
+    
+    .form-section-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--primary-color);
+    }
+    
+    .conditional-fields {
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: var(--spacing-4);
+      margin-top: var(--spacing-4);
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .conditional-fields.hidden {
+      display: none;
+    }
+    
+    .save-button {
+      background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: var(--spacing-3) var(--spacing-6);
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .save-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    
+    .save-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .floating-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: var(--spacing-4);
+      border-radius: 12px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+    }
+    
+    .floating-message.show {
+      transform: translateX(0);
+    }
+    
+    .floating-message.success {
+      background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    }
+    
+    .floating-message.error {
+      background: linear-gradient(135deg, var(--error-color) 0%, #dc2626 100%);
+    }
+    
+    @media (max-width: 1024px) {
+      .entrada-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+      }
+      
+      .filtro-panel {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-content">
+      <div class="header-left">
+        <img src="logomarca.png" alt="Logo Pernambuco III" class="header-logo">
+        <div>
+          <div class="header-title">Quadro de Disponibilidade</div>
+          <div class="header-subtitle">Sistema de Monitoramento de Equipamentos</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-time" id="relogio"></div>
+        <nav class="header-nav">
+          <a href="status.html" class="nav-button">Ver Status</a>
+          <a href="entrada.html" class="nav-button primary">Entrada de Dados</a>
+          <a href="index.html" class="nav-button danger">Sair</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="entrada-container">
+    <div class="page-title">Entrada de Dados dos Equipamentos</div>
+    <div class="page-description">Edite os dados dos equipamentos linha a linha com validação automática</div>
+    
+    <div class="entrada-grid">
+      <!-- Painel de Filtros e Formulário -->
+      <div class="filtro-panel">
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg class="form-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            </svg>
+            Filtros
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="filtro-equipamento">Equipamento (Coluna A)</label>
+            <select id="filtro-equipamento" class="form-select">
+              <option value="">Todos os equipamentos</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="filtro-busca-texto">Buscar por Texto</label>
+            <input type="text" id="filtro-busca-texto" class="form-input" placeholder="Digite para buscar...">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="filtro-status-busca">Status</label>
+            <select id="filtro-status-busca" class="form-select">
+              <option value="">Todos os status</option>
+              <option value="OPE">🟢 Em Operação</option>
+              <option value="ST-BY">🟡 Stand-by</option>
+              <option value="MNT">🔴 Em Manutenção</option>
+            </select>
+          </div>
+          
+          <button onclick="limparFiltros()" class="form-button" style="width: 100%; margin-top: var(--spacing-4);">
+            Limpar Filtros
+          </button>
+        </div>
+
+        <!-- Formulário de Edição -->
+        <div id="form-edicao" class="form-section" style="display: none;">
+          <div class="form-section-title">
+            <svg class="form-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Editar Equipamento
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Equipamento Selecionado</label>
+            <input type="text" id="equipamento-selecionado" class="form-input" readonly>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="status-edicao">Status (Coluna B)</label>
+            <select id="status-edicao" class="form-select" onchange="atualizarCamposCondicionais()">
+              <option value="">Selecione o status</option>
+              <option value="ST-BY">ST-BY (Stand-by)</option>
+              <option value="MNT">MNT (Manutenção)</option>
+              <option value="OPE">OPE (Operação)</option>
+            </select>
+          </div>
+
+          <!-- Campos condicionais para ST-BY -->
+          <div id="campos-stby" class="conditional-fields hidden">
+            <div class="form-group">
+              <label class="form-label" for="motivo-stby">Motivo (Coluna C)</label>
+              <select id="motivo-stby" class="form-select">
+                <option value="">Selecione o motivo</option>
+                <option value="Conveniência operacional">Conveniência operacional</option>
+                <option value="Conveniência do sistema">Conveniência do sistema</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="observacoes-stby">Observações (Coluna H)</label>
+              <textarea id="observacoes-stby" class="form-textarea" rows="3" maxlength="100"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="modificado-por-stby">Modificado Por (Coluna I)</label>
+              <input type="text" id="modificado-por-stby" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="data-stby">Data e Hora (Coluna J)</label>
+              <input type="datetime-local" id="data-stby" class="form-input">
+            </div>
+          </div>
+
+          <!-- Campos condicionais para MNT -->
+          <div id="campos-mnt" class="conditional-fields hidden">
+            <div class="form-group">
+              <label class="form-label" for="motivo-mnt">Motivo (Coluna C)</label>
+              <select id="motivo-mnt" class="form-select">
+                <option value="">Selecione o motivo</option>
+                <option value="Manutenção corretiva">Manutenção corretiva</option>
+                <option value="Manutenção preventiva">Manutenção preventiva</option>
+                <option value="Manutenção preditiva do sistema">Manutenção preditiva do sistema</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pts-mnt">PTS (Coluna D)</label>
+              <input type="text" id="pts-mnt" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="os-mnt">OS (Coluna E)</label>
+              <input type="text" id="os-mnt" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="previsao-retorno-mnt">Previsão de Retorno (Coluna F)</label>
+              <input type="datetime-local" id="previsao-retorno-mnt" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="observacoes-mnt">Observações (Coluna H)</label>
+              <textarea id="observacoes-mnt" class="form-textarea" rows="3" maxlength="100"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="modificado-por-mnt">Modificado Por (Coluna I)</label>
+              <input type="text" id="modificado-por-mnt" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="data-mnt">Data e Hora (Coluna J)</label>
+              <input type="datetime-local" id="data-mnt" class="form-input">
+            </div>
+          </div>
+
+          <!-- Campos condicionais para OPE -->
+          <div id="campos-ope" class="conditional-fields hidden">
+            <div class="form-group">
+              <label class="form-label" for="modificado-por-ope">Modificado Por (Coluna I)</label>
+              <input type="text" id="modificado-por-ope" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="data-ope">Data e Hora (Coluna J)</label>
+              <input type="datetime-local" id="data-ope" class="form-input">
+            </div>
+          </div>
+
+          <button onclick="salvarEquipamento()" class="save-button" id="btn-salvar">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span id="btn-texto">Salvar Alterações</span>
+            <div id="btn-loader" class="loading-spinner" style="display: none;"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela de Equipamentos -->
+      <div class="equipamentos-table-container">
+        <div class="table-header">
+          <div>
+            <h3 style="margin: 0; font-size: var(--font-size-lg);">Lista de Equipamentos</h3>
+            <p style="margin: 0; opacity: 0.9; font-size: var(--font-size-sm);">Clique em uma linha para editar</p>
+          </div>
+          <button onclick="carregarEquipamentos()" class="form-button" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+            <span id="refresh-text">Atualizar</span>
+            <div id="refresh-loader" class="loading-spinner" style="display: none;"></div>
+          </button>
+        </div>
+        
+        <div style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+          <table class="equipamentos-table">
+            <thead>
+              <tr>
+                <th>TAG</th>
+                <th>Status</th>
+                <th>Motivo</th>
+                <th>PTS</th>
+                <th>OS</th>
+                <th>Previsão Retorno</th>
+                <th>Observações</th>
+                <th>Modificado Por</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody id="equipamentos-tbody">
+              <tr>
+                <td colspan="9" style="text-align: center; padding: var(--spacing-8); color: var(--gray-500);">
+                  Carregando equipamentos...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensagem flutuante -->
+  <div id="floating-message" class="floating-message"></div>
+
+  <script>
+    // Endpoint do Google Apps Script
+    const endpoint = "https://still-forest-df4f.oem-pe3.workers.dev/";
+    
+    let equipamentosData = [];
+    let equipamentosFiltrados = [];
+    let equipamentoSelecionado = null;
+
+    // Inicialização
+    document.addEventListener("DOMContentLoaded", function() {
+      carregarEquipamentos();
+      atualizarRelogio();
+      setInterval(atualizarRelogio, 1000);
+      
+      // Event listeners para filtros
+      document.getElementById("filtro-equipamento").addEventListener("change", aplicarFiltros);
+      document.getElementById("filtro-status-busca").addEventListener("change", aplicarFiltros);
+      document.getElementById("filtro-busca-texto").addEventListener("input", aplicarFiltros);
+    });
+
+    // Atualizar relógio
+    function atualizarRelogio() {
+      const agora = new Date();
+      const relogio = document.getElementById("relogio");
+      relogio.textContent = agora.toLocaleString("pt-BR");
+    }
+
+    // Carregar equipamentos do Google Sheets
+    function carregarEquipamentos() {
+      const refreshText = document.getElementById("refresh-text");
+      const refreshLoader = document.getElementById("refresh-loader");
+      
+      if (refreshText && refreshLoader) {
+        refreshText.style.display = "none";
+        refreshLoader.style.display = "inline-block";
+      }
+      
+      fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+          equipamentosData = data.data || [];
+          preencherFiltroEquipamentos();
+          aplicarFiltros();
+          mostrarMensagem("Equipamentos carregados com sucesso!", "success");
+        })
+        .catch(error => {
+          console.error("Erro ao carregar equipamentos:", error);
+          mostrarMensagem("Erro ao carregar equipamentos. Tente novamente.", "error");
+        })
+        .finally(() => {
+          if (refreshText && refreshLoader) {
+            refreshText.style.display = "inline";
+            refreshLoader.style.display = "none";
+          }
+        });
+    }
+
+    // Preencher filtro de equipamentos
+    function preencherFiltroEquipamentos() {
+      const select = document.getElementById("filtro-equipamento");
+      select.innerHTML = "<option value=\"\">Todos os equipamentos</option>";
+      
+      const tags = [...new Set(equipamentosData.map(e => e.TAG).filter(tag => tag))].sort();
+      tags.forEach(tag => {
+        const option = document.createElement("option");
+        option.value = tag;
+        option.textContent = tag;
+        select.appendChild(option);
+      });
+    }
+
+    // Aplicar filtros
+    function aplicarFiltros() {
+      const filtroEquipamento = document.getElementById("filtro-equipamento").value;
+      const filtroStatus = document.getElementById("filtro-status-busca").value;
+      const filtroBuscaTexto = document.getElementById("filtro-busca-texto").value.toLowerCase();
+      
+      equipamentosFiltrados = equipamentosData.filter(equip => {
+        const matchEquipamento = !filtroEquipamento || equip.TAG === filtroEquipamento;
+        const matchStatus = !filtroStatus || equip.STATUS === filtroStatus;
+        const matchBuscaTexto = !filtroBuscaTexto || 
+          (equip.TAG && equip.TAG.toLowerCase().includes(filtroBuscaTexto)) ||
+          (equip.NOME && equip.NOME.toLowerCase().includes(filtroBuscaTexto)) ||
+          (equip.MOTIVO && equip.MOTIVO.toLowerCase().includes(filtroBuscaTexto)) ||
+          (equip.OBSERVACOES && equip.OBSERVACOES.toLowerCase().includes(filtroBuscaTexto));
+
+        return matchEquipamento && matchStatus && matchBuscaTexto;
+      });
+      
+      renderizarTabela();
+    }
+
+    // Limpar filtros
+    function limparFiltros() {
+      document.getElementById("filtro-equipamento").value = "";
+      document.getElementById("filtro-status-busca").value = "";
+      document.getElementById("filtro-busca-texto").value = "";
+      aplicarFiltros();
+    }
+
+    // Renderizar tabela
+    function renderizarTabela() {
+      const tbody = document.getElementById("equipamentos-tbody");
+      
+      if (equipamentosFiltrados.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: var(--spacing-8); color: var(--gray-500);">
+              Nenhum equipamento encontrado com os filtros aplicados.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = equipamentosFiltrados.map((equip, index) => `
+        <tr onclick="selecionarEquipamento('${equip.TAG}')" data-tag="${equip.TAG}">
+          <td><strong>${equip.TAG || "N/A"}</strong></td>
+          <td>
+            <span class="status-badge ${getStatusClass(equip.STATUS)}">
+              <span class="status-indicator ${getStatusClass(equip.STATUS)}"></span>
+              ${equip.STATUS || "N/A"}
+            </span>
+          </td>
+          <td>${equip.MOTIVO || "-"}</td>
+          <td>${equip.PTS || "-"}</td>
+          <td>${equip.OS || "-"}</td>
+          <td>${equip.OBSERVACOES ? (equip.OBSERVACOES.length > 30 ? equip.OBSERVACOES.substring(0, 30) + "..." : equip.OBSERVACOES) : "-"}</td>
+          <td>${equip.MODIFICADO_POR || "-"}</td>
+          <td>${equip.DATA ? new Date(equip.DATA).toLocaleString("pt-BR") : "-"}</td>
+        </tr>
+      `).join("");
+    }
+
+    // Obter classe CSS do status
+    function getStatusClass(status) {
+      switch(status) {
+        case "OPE": return "ope";
+        case "ST-BY": return "stby";
+        case "MNT": return "mnt";
+        default: return "";
+      }
+    }
+
+    // Selecionar equipamento para edição
+    function selecionarEquipamento(tag) {
+      // Remover seleção anterior
+      document.querySelectorAll(".equipamentos-table tr").forEach(tr => {
+        tr.classList.remove("selected");
+      });
+      
+      // Adicionar seleção atual
+      const row = document.querySelector(`tr[data-tag="${tag}"]`);
+      if (row) {
+        row.classList.add("selected");
+      }
+      
+      // Encontrar equipamento
+      equipamentoSelecionado = equipamentosData.find(e => e.TAG === tag);
+      if (!equipamentoSelecionado) return;
+      
+      // Mostrar formulário de edição
+      document.getElementById("form-edicao").style.display = "block";
+      
+      // Preencher campos
+      document.getElementById("equipamento-selecionado").value = equipamentoSelecionado.TAG || "";
+      document.getElementById("status-edicao").value = equipamentoSelecionado.STATUS || "";
+      
+      // Preencher campos condicionais baseado no status atual
+      preencherCamposCondicionais();
+      atualizarCamposCondicionais();
+    }
+
+    // Preencher campos condicionais com dados existentes
+    function preencherCamposCondicionais() {
+      if (!equipamentoSelecionado) return;
+      
+      const status = equipamentoSelecionado.STATUS;
+      
+      if (status === "ST-BY") {
+        document.getElementById("motivo-stby").value = equipamentoSelecionado.MOTIVO || "";
+        document.getElementById("observacoes-stby").value = equipamentoSelecionado.OBSERVACOES || "";
+        document.getElementById("modificado-por-stby").value = equipamentoSelecionado.MODIFICADO_POR || "";
+        document.getElementById("data-stby").value = equipamentoSelecionado.DATA ? new Date(equipamentoSelecionado.DATA).toISOString().slice(0,16) : "";
+      } else if (status === "MNT") {
+        document.getElementById("motivo-mnt").value = equipamentoSelecionado.MOTIVO || "";
+        document.getElementById("pts-mnt").value = equipamentoSelecionado.PTS || "";
+        document.getElementById("os-mnt").value = equipamentoSelecionado.OS || "";
+        document.getElementById("observacoes-mnt").value = equipamentoSelecionado.OBSERVACOES || "";
+        document.getElementById("modificado-por-mnt").value = equipamentoSelecionado.MODIFICADO_POR || "";
+        document.getElementById("data-mnt").value = equipamentoSelecionado.DATA ? new Date(equipamentoSelecionado.DATA).toISOString().slice(0,16) : "";
+      } else if (status === "OPE") {
+        document.getElementById("modificado-por-ope").value = equipamentoSelecionado.MODIFICADO_POR || "";
+        document.getElementById("data-ope").value = equipamentoSelecionado.DATA ? new Date(equipamentoSelecionado.DATA).toISOString().slice(0,16) : "";
+      }
+    }
+
+    // Atualizar campos condicionais baseado no status selecionado
+    function atualizarCamposCondicionais() {
+      const status = document.getElementById("status-edicao").value;
+      
+      // Esconder todos os campos condicionais
+      document.getElementById("campos-stby").classList.add("hidden");
+      document.getElementById("campos-mnt").classList.add("hidden");
+      document.getElementById("campos-ope").classList.add("hidden");
+      
+      // Mostrar campos baseado no status
+      if (status === "ST-BY") {
+        document.getElementById("campos-stby").classList.remove("hidden");
+        // Definir data/hora atual se não preenchida
+        if (!document.getElementById("data-stby").value) {
+          document.getElementById("data-stby").value = new Date().toISOString().slice(0,16);
+        }
+      } else if (status === "MNT") {
+        document.getElementById("campos-mnt").classList.remove("hidden");
+        // Definir data/hora atual se não preenchida
+        if (!document.getElementById("data-mnt").value) {
+          document.getElementById("data-mnt").value = new Date().toISOString().slice(0,16);
+        }
+      } else if (status === "OPE") {
+        document.getElementById("campos-ope").classList.remove("hidden");
+        // Definir data/hora atual se não preenchida
+        if (!document.getElementById("data-ope").value) {
+          document.getElementById("data-ope").value = new Date().toISOString().slice(0,16);
+        }
+      }
+    }
+
+    // Salvar equipamento
+    async function salvarEquipamento() {
+      if (!equipamentoSelecionado) {
+        mostrarMensagem("Nenhum equipamento selecionado.", "error");
+        return;
+      }
+      
+      const status = document.getElementById("status-edicao").value;
+      if (!status) {
+        mostrarMensagem("Por favor, selecione um status.", "error");
+        return;
+      }
+      
+      const btnSalvar = document.getElementById("btn-salvar");
+      const btnTexto = document.getElementById("btn-texto");
+      const btnLoader = document.getElementById("btn-loader");
+      
+      // Mostrar loading
+      btnTexto.style.display = "none";
+      btnLoader.style.display = "inline-block";
+      btnSalvar.disabled = true;
+      
+      try {
+        // Preparar dados baseado no status
+        const dados = {
+          type: "update_row",
+          TAG: equipamentoSelecionado.TAG,
+          STATUS: status,
+          MOTIVO: "",
+          PTS: "",
+          OS: "",
+          RETORNO: "",
+          CADEADO: "",
+          OBSERVACOES: "",
+          MODIFICADO_POR: "",
+          DATA: new Date().toISOString()
+        };
+        
+        // Preencher campos específicos baseado no status
+        if (status === "ST-BY") {
+          dados.MOTIVO = document.getElementById("motivo-stby").value || "";
+          dados.OBSERVACOES = document.getElementById("observacoes-stby").value || "";
+          dados.MODIFICADO_POR = document.getElementById("modificado-por-stby").value || "";
+          dados.DATA = document.getElementById("data-stby").value ? new Date(document.getElementById("data-stby").value).toISOString() : new Date().toISOString();
+          // Zerar campos não utilizados
+          dados.PTS = "";
+          dados.OS = "";
+        } else if (status === "MNT") {
+          dados.MOTIVO = document.getElementById("motivo-mnt").value || "";
+          dados.PTS = document.getElementById("pts-mnt").value || "";
+          dados.OS = document.getElementById("os-mnt").value || "";
+          dados.OBSERVACOES = document.getElementById("observacoes-mnt").value || "";
+          dados.MODIFICADO_POR = document.getElementById("modificado-por-mnt").value || "";
+          dados.DATA = document.getElementById("data-mnt").value ? new Date(document.getElementById("data-mnt").value).toISOString() : new Date().toISOString();
+        } else if (status === "OPE") {
+          dados.MODIFICADO_POR = document.getElementById("modificado-por-ope").value || "";
+          dados.DATA = document.getElementById("data-ope").value ? new Date(document.getElementById("data-ope").value).toISOString() : new Date().toISOString();
+          // Zerar campos não utilizados
+          dados.MOTIVO = "";
+          dados.PTS = "";
+          dados.OS = "";
+          dados.OBSERVACOES = "";
+        }
+        
+        // Enviar para Google Sheets
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dados)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+          mostrarMensagem("Equipamento atualizado com sucesso!", "success");
+          
+          // Recarregar dados
+          await carregarEquipamentos();
+          
+          // Manter seleção
+          setTimeout(() => {
+            selecionarEquipamento(equipamentoSelecionado.TAG);
+          }, 500);
+        } else {
+          mostrarMensagem(`Erro ao atualizar equipamento: ${result.error || "Erro desconhecido"}`, "error");
+        }
+        
+      } catch (error) {
+        console.error("Erro:", error);
+        mostrarMensagem("Erro ao atualizar equipamento. Tente novamente.", "error");
+      } finally {
+        // Restaurar botão
+        btnTexto.style.display = "inline";
+        btnLoader.style.display = "none";
+        btnSalvar.disabled = false;
+      }
+    }
+
+    // Mostrar mensagem flutuante
+    function mostrarMensagem(texto, tipo) {
+      const mensagem = document.getElementById("floating-message");
+      mensagem.textContent = texto;
+      mensagem.className = `floating-message ${tipo}`;
+      mensagem.classList.add("show");
+      
+      setTimeout(() => {
+        mensagem.classList.remove("show");
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
+
